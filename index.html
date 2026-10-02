@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Jím, piju, chci… Časování sloves</title>
+<style>
+:root{--bg:#fffdf6;--ink:#1b1b2f;--soft:#5b5b73;--pink:#ff3d7f;--blue:#2b59ff;--yel:#ffe45c;--card:#fff;--line:#1b1b2f;--ok:#1f9d62}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#15152a;--ink:#f6f3ea;--soft:#b5b5cc;--card:#20203a;--line:#f6f3ea}}
+:root[data-theme="dark"]{--bg:#15152a;--ink:#f6f3ea;--soft:#b5b5cc;--card:#20203a;--line:#f6f3ea}
+*,*:before,*:after{box-sizing:border-box}
+body{margin:0;padding-top:env(safe-area-inset-top,0px);background:var(--bg);color:var(--ink);font:17px/1.55 "Figtree","Segoe UI",system-ui,sans-serif}
+h1,h2,h3{font-family:"Bricolage Grotesque","Arial Black",Impact,sans-serif;line-height:1.05;margin:0}
+main{max-width:860px;margin:0 auto;padding:0 18px 60px}
+.hero{padding:44px 0 24px}
+.hero h1{font-size:clamp(2.6rem,11vw,5.5rem);letter-spacing:-.03em;transform:rotate(-2deg);display:inline-block;background:var(--yel);color:#1b1b2f;padding:.05em .25em;border:3px solid var(--line);box-shadow:6px 6px 0 var(--blue)}
+.hero p{font-size:1.15rem;max-width:34em;margin:24px 0 0}
+section{margin-top:54px}
+h2{font-size:clamp(1.8rem,6vw,2.5rem);margin-bottom:6px}
+.sub{color:var(--soft);margin:0 0 16px}
+.tip{background:var(--yel);color:#1b1b2f;border:2px solid var(--line);border-radius:12px;padding:12px 16px;margin:16px 0}
+/* overview cards */
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.vc{background:var(--card);border:3px solid var(--line);border-radius:16px;padding:14px 14px 12px}
+.vc h3{font-size:1.9rem;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.vc h3 small{font:600 .95rem "Figtree","Segoe UI",system-ui,sans-serif;color:var(--soft)}
+.vc table{width:100%;border-collapse:collapse;margin:8px 0}
+.vc td{padding:3px 0;border-bottom:1px dotted var(--soft)}
+.vc td:first-child{color:var(--soft);width:40%;font-size:.95rem}
+.fb{font:inherit;font-weight:700;font-size:1.1rem;background:none;border:0;color:var(--ink);cursor:pointer;padding:3px 6px;border-radius:8px;text-align:left}
+.fb:hover{background:var(--yel);color:#1b1b2f}.fb:focus-visible{outline:3px solid var(--blue)}
+.end{color:var(--pink);border-bottom:2px solid var(--pink)}
+.alt{font-weight:500;color:var(--soft);font-size:.9rem}
+.ex{font-size:.95rem;margin:6px 0 0}.ex i{color:var(--soft)}
+.tapnote{display:inline-block;background:var(--yel);color:#1b1b2f;border-radius:99px;padding:2px 14px;font-weight:700;font-size:.92rem;margin:0 0 12px}
+/* tabs & inputs */
+.tabs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.tabs button,.btn{font:inherit;font-weight:700;border:2px solid var(--line);background:var(--card);color:var(--ink);border-radius:99px;padding:8px 18px;cursor:pointer;min-height:44px}
+.tabs button[aria-selected="true"]{background:var(--ink);color:var(--bg)}
+.btn.primary{background:var(--ink);color:var(--bg)}
+button:focus-visible,input:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+.fill{background:var(--card);border:2px solid var(--line);border-radius:14px;padding:12px 14px}
+.fill .row{display:flex;align-items:center;gap:10px;margin:8px 0;flex-wrap:wrap}
+.fill .row label{width:7.5em;color:var(--soft)}
+input.t{font:inherit;font-size:1.05rem;padding:8px 12px;border:2px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);width:9em;max-width:100%}
+input.t.ok{border-color:var(--ok);background:rgba(31,157,98,.15)}input.t.no{border-color:var(--pink);background:rgba(255,61,127,.15)}
+.after{font-weight:600}
+/* score */
+.score{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;display:inline-block;background:var(--yel);color:#1b1b2f;border:2px solid var(--line);border-radius:99px;padding:2px 14px;font-weight:800;margin:6px 0}
+/* questions */
+.q{background:var(--card);border:2px solid var(--line);border-radius:14px;padding:10px 14px;margin:10px 0}
+.q p{margin:0 0 8px;font-size:1.05rem}.q p small{display:block;color:var(--soft);font-size:.88rem}
+.opts{display:flex;flex-wrap:wrap;gap:8px}
+.opts button{font:inherit;font-weight:700;background:var(--card);color:var(--ink);border:2px solid var(--line);border-radius:99px;padding:6px 18px;min-height:44px;cursor:pointer}
+.opts button.ok{background:var(--ok);color:#fff;border-color:var(--ok)}.opts button.no{background:var(--pink);color:#1b1b2f;border-color:var(--pink)}
+.q .typed{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.fb2{font-weight:700;min-height:1.5em;margin-top:6px}
+.blank{display:inline-block;min-width:3.5em;border-bottom:3px solid var(--ink);margin:0 3px}
+/* game */
+.gen{text-align:center;background:var(--card);border:3px dashed var(--pink);border-radius:18px;padding:22px}
+.gen .ask{font:800 clamp(1.8rem,8vw,3rem)/1.1 "Bricolage Grotesque","Arial Black",sans-serif;min-height:1.2em}
+.gen .ans{font:800 clamp(1.3rem,6vw,2rem)/1.2 "Bricolage Grotesque","Arial Black",sans-serif;color:var(--pink);min-height:2.4em;margin:10px 0}
+.gen .btns{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+footer{margin-top:50px;color:var(--soft);font-size:.9rem}
+@media print{:root{--bg:#fff;--ink:#000;--card:#fff}.tabs,.btns,.score,.tapnote{display:none}}
+</style>
+</head>
+<body>
+<main>
+
+<header class="hero">
+  <h1>Jím, piju, chci…</h1>
+  <p>Časování pěti sloves, která potřebuješ v restauraci: <b>jíst, pít, chtít, číst, mít rád</b>. Nejdřív se podívej na tabulky, pak cvič. <small style="color:var(--soft)">(Conjugation practice: five useful verbs.)</small></p>
+</header>
+
+<section>
+  <h2>1. Přehled</h2>
+  <p class="sub">Sloveso se mění podle toho, kdo to dělá. <em>(The verb changes with the person.)</em></p>
+  <p class="tapnote">👆 Klikni na tvar slovesa a uslyšíš ho.</p>
+  <div class="cards" id="cards"></div>
+  <div class="tip">💡 <b>Já, ty… často vynecháme.</b> Česky řekneš jen <b>„Chci kávu.“</b> (ne „Já chci kávu.“). Zájmeno použiješ, když chceš něco zdůraznit: <b>„Já chci kávu, ale ty chceš čaj.“</b></div>
+  <div class="tip">💡 <b>Mít rád</b>: slovo <b>rád</b> se mění podle toho, kdo mluví. Kluk: <b>rád</b>, holka: <b>ráda</b>, více lidí: <b>rádi</b> (nebo <b>rády</b>, pokud jsou to jen ženy).</div>
+</section>
+
+<section>
+  <h2>2. Doplň tabulku</h2>
+  <p class="sub">Vyber sloveso a napiš všech šest tvarů. Čárky nejsou povinné, ale správně se píší. <em>(Accents are optional here.)</em></p>
+  <div class="tabs" id="tabs" role="tablist"></div>
+  <div class="fill" id="fill"></div>
+</section>
+
+<section>
+  <h2>3. Vyber správný tvar</h2>
+  <p class="sub">Klikni na odpověď. Zelená = správně, růžová = zkus znovu.</p>
+  <div id="score" class="score" aria-live="polite">0 / 0</div>
+  <div id="mc"></div>
+</section>
+
+<section>
+  <h2>4. Napiš správný tvar</h2>
+  <p class="sub">Napiš tvar slovesa do pole a zmáčkni Enter nebo „Zkontrolovat“.</p>
+  <div id="typed"></div>
+</section>
+
+<section>
+  <h2>5. Hra: Losuj a řekni nahlas</h2>
+  <p class="sub">Zmáčkni „Losuj“. Řekni správný tvar nahlas. Pak zmáčkni „Ukaž“ a zkontroluj se.</p>
+  <div class="gen">
+    <div class="ask" id="ask">?</div>
+    <div class="ans" id="ans" aria-live="polite"></div>
+    <div class="btns">
+      <button class="btn primary" id="roll" type="button">🎲 Losuj</button>
+      <button class="btn" id="show" type="button">👀 Ukaž</button>
+      <button class="btn" id="hear" type="button">🔊 Poslechni</button>
+    </div>
+  </div>
+</section>
+
+<footer>Čeština pro začátečníky A1 · časování sloves: jíst, pít, chtít, číst, mít rád</footer>
+</main>
+
+<script>
+(function(){
+  var PR=["já","ty","on / ona","my","vy","oni / ony"];
+  var V=[
+   {id:"jist",inf:"jíst",en:"to eat",e:"🍽️",f:[["jí","m"],["jí","š"],["jí",""],["jí","me"],["jí","te"],["jed","í"]],ex:["Já jím polévku.","I eat soup."],note:"oni: jedí (pozor!)"},
+   {id:"pit",inf:"pít",en:"to drink",e:"🥤",f:[["pij","u"],["pij","eš"],["pij","e"],["pij","eme"],["pij","ete"],["pij","í"]],alt0:"piji",acc0:["piju","piji"],ex:["Já piju čaj.","I drink tea."],note:"já: piju (nebo piji)"},
+   {id:"chtit",inf:"chtít",en:"to want",e:"🙋",f:[["chc","i"],["chc","eš"],["chc","e"],["chc","eme"],["chc","ete"],["chtěj","í"]],ex:["Chci vodu.","I want water."],note:"oni: chtějí (pozor!)"},
+   {id:"cist",inf:"číst",en:"to read",e:"📖",f:[["čt","u"],["čt","eš"],["čt","e"],["čt","eme"],["čt","ete"],["čt","ou"]],ex:["Čtu jídelní lístek.","I read the menu."],note:"já: čtu, oni: čtou"},
+   {id:"mit",inf:"mít rád",en:"to like",e:"❤️",f:[["m","ám"],["m","áš"],["m","á"],["m","áme"],["m","áte"],["m","ají"]],after:["rád / ráda","rád / ráda","rád / ráda","rádi","rádi","rádi"],ex:["Mám rád pizzu.","I like pizza."],note:"Tvary slovesa mít + rád"}
+  ];
+  function main(v,i){return v.f[i][0]+v.f[i][1];}
+  function acc(v,i){return (i===0&&v.acc0)?v.acc0:[main(v,i)];}
+
+  /* ---------- zvuk ---------- */
+  var voices=[];function lv(){if(window.speechSynthesis)voices=speechSynthesis.getVoices();}
+  lv();if(window.speechSynthesis)speechSynthesis.onvoiceschanged=lv;
+  function say(t){
+    if(!(window.speechSynthesis&&window.SpeechSynthesisUtterance))return;
+    speechSynthesis.cancel();
+    var u=new SpeechSynthesisUtterance(t);u.lang="cs-CZ";u.rate=0.85;
+    var cz=voices.filter(function(x){return /^cs([-_]|$)/i.test(x.lang);});
+    if(cz.length){var f=cz.filter(function(x){return /zuzana|vlasta|iveta|google|female/i.test(x.name);});u.voice=f[0]||cz[0];}
+    speechSynthesis.speak(u);
+  }
+  function el(t,c,txt){var e=document.createElement(t);if(c)e.className=c;if(txt!=null)e.textContent=txt;return e;}
+  function norm(s){return s.trim().toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/\s+/g," ");}
+  function rnd(a){return a[Math.floor(Math.random()*a.length)];}
+  function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
+
+  /* ---------- 1. přehled ---------- */
+  var cards=document.getElementById("cards");
+  V.forEach(function(v){
+    var c=el("div","vc");
+    var h=el("h3");h.appendChild(document.createTextNode(v.e+" "+v.inf));h.appendChild(el("small",null,v.en));c.appendChild(h);
+    var t=el("table");
+    for(var i=0;i<6;i++){
+      var tr=el("tr");tr.appendChild(el("td",null,PR[i]));
+      var td=el("td");var b=el("button","fb");b.type="button";
+      b.appendChild(document.createTextNode(v.f[i][0]));b.appendChild(el("span","end",v.f[i][1]||"∅"));
+      if(v.after){b.appendChild(document.createTextNode(" "+v.after[i]));}
+      if(i===0&&v.alt0){b.appendChild(el("span","alt"," ("+v.alt0+")"));}
+      (function(txt){b.addEventListener("click",function(){say(txt);});})(main(v,i)+(v.after?" "+v.after[i].split(" / ")[0]:""));
+      b.setAttribute("aria-label",main(v,i));
+      td.appendChild(b);tr.appendChild(td);t.appendChild(tr);
+    }
+    c.appendChild(t);
+    var ex=el("p","ex");ex.appendChild(document.createTextNode(v.ex[0]+" "));ex.appendChild(el("i",null,"("+v.ex[1]+")"));c.appendChild(ex);
+    cards.appendChild(c);
+  });
+
+  /* ---------- 2. tabulka ---------- */
+  var tabs=document.getElementById("tabs"),fill=document.getElementById("fill"),curV=0;
+  function drawFill(){
+    fill.innerHTML="";
+    var v=V[curV];
+    var inputs=[];
+    for(var i=0;i<6;i++){
+      var r=el("div","row");var l=el("label",null,PR[i]);l.htmlFor="f"+i;r.appendChild(l);
+      var inp=el("input","t");inp.id="f"+i;inp.type="text";inp.setAttribute("autocomplete","off");inp.setAttribute("autocapitalize","none");inp.setAttribute("spellcheck","false");
+      inp.setAttribute("aria-label",PR[i]+" – "+v.inf);
+      r.appendChild(inp);
+      if(v.after)r.appendChild(el("span","after",v.after[i]));
+      fill.appendChild(r);inputs.push(inp);
+    }
+    var res=el("div","fb2");res.setAttribute("aria-live","polite");
+    var chk=el("button","btn primary","Zkontrolovat");chk.type="button";
+    var clr=el("button","btn","Smazat");clr.type="button";clr.style.marginLeft="8px";
+    chk.addEventListener("click",function(){
+      var good=0;
+      inputs.forEach(function(inp,i){
+        var ok=acc(v,i).map(norm).indexOf(norm(inp.value))>=0;
+        inp.className="t "+(ok?"ok":"no");if(ok)good++;
+      });
+      res.textContent=good===6?"🎉 Všechno správně!":good+" / 6 správně. Růžová pole oprav.";
+    });
+    clr.addEventListener("click",function(){inputs.forEach(function(i){i.value="";i.className="t";});res.textContent="";});
+    var box=el("div");box.style.marginTop="10px";box.appendChild(chk);box.appendChild(clr);fill.appendChild(box);fill.appendChild(res);
+  }
+  V.forEach(function(v,k){
+    var b=el("button",null,v.inf);b.type="button";b.setAttribute("role","tab");b.setAttribute("aria-selected",k===0?"true":"false");
+    b.addEventListener("click",function(){curV=k;Array.prototype.forEach.call(tabs.children,function(x,n){x.setAttribute("aria-selected",n===k?"true":"false");});drawFill();});
+    tabs.appendChild(b);
+  });
+  drawFill();
+
+  /* ---------- věty ---------- */
+  var S={
+   jist:[["Já ___ polévku.","I eat soup."],["Ty ___ řízek?","Are you eating schnitzel?"],["Petr ___ palačinku.","Petr eats a crêpe."],["My ___ pizzu.","We eat pizza."],["Vy ___ salát?","Are you eating salad?"],["Děti ___ zmrzlinu.","The kids eat ice cream."]],
+   pit:[["Já ___ čaj.","I drink tea."],["Ty ___ kávu?","Do you drink coffee?"],["Eva ___ limonádu.","Eva drinks lemonade."],["My ___ vodu.","We drink water."],["Co ___ vy k večeři?","What do you drink with dinner?"],["Kluci ___ colu.","The boys drink cola."]],
+   chtit:[["Já ___ vodu, prosím.","I want water, please."],["Co ___ ty k pití?","What do you want to drink?"],["Anna ___ čaj.","Anna wants tea."],["My ___ platit hotově.","We want to pay cash."],["Co ___ vy k jídlu?","What do you want to eat?"],["Kamarádi ___ hranolky.","My friends want fries."]],
+   cist:[["Já ___ jídelní lístek.","I read the menu."],["Ty ___ knihu.","You read a book."],["Honza ___ zprávy.","Honza reads the news."],["My ___ česky.","We read in Czech."],["Co ___ vy?","What are you reading?"],["Studenti ___ text.","The students read a text."]],
+   mit:[["Já ___ ráda zmrzlinu.","I like ice cream. (a girl speaking)"],["Ty ___ rád kávu?","Do you like coffee? (to a boy)"],["Tomáš ___ rád hranolky.","Tomáš likes fries."],["My ___ rádi pizzu.","We like pizza."],["Vy ___ rádi čaj?","Do you like tea?"],["Kamarádi ___ rádi kávu.","My friends like coffee."]]
+  };
+  var mcItems=[],tyItems=[];
+  V.forEach(function(v,k){
+    var evenSet=[0,2,4],oddSet=[1,3,5];
+    var a=(k%2===0)?evenSet:oddSet,b=(k%2===0)?oddSet:evenSet;
+    a.forEach(function(p){mcItems.push({v:v,p:p,s:S[v.id][p]});});
+    b.forEach(function(p){tyItems.push({v:v,p:p,s:S[v.id][p]});});
+  });
+  mcItems=shuffle(mcItems);tyItems=shuffle(tyItems);
+  var total=mcItems.length+tyItems.length,got=0,sc=document.getElementById("score");
+  function upd(){sc.textContent=got+" / "+total+(got===total?" 🎉 Výborně!":"");}
+  upd();
+
+  function sentence(s){ /* vrací <p> s mezerou */
+    var p=el("p");var parts=s[0].split("___");
+    p.appendChild(document.createTextNode(parts[0]));p.appendChild(el("span","blank"));p.appendChild(document.createTextNode(parts[1]||""));
+    p.appendChild(el("small",null,s[1]));return p;
+  }
+
+  /* ---------- 3. výběr ---------- */
+  var mc=document.getElementById("mc");
+  mcItems.forEach(function(it){
+    var q=el("div","q");q.appendChild(sentence(it.s));
+    var o=el("div","opts");
+    var correct=main(it.v,it.p);
+    var others=[];for(var i=0;i<6;i++){var m=main(it.v,i);if(m!==correct&&others.indexOf(m)<0)others.push(m);}
+    var opts=shuffle([correct].concat(shuffle(others).slice(0,2)));
+    opts.forEach(function(t){
+      var b=el("button",null,t);b.type="button";
+      b.addEventListener("click",function(){
+        if(q.dataset.done)return;
+        if(t===correct){b.className="ok";q.dataset.done="1";got++;upd();say(it.s[0].replace("___",correct));}
+        else b.className="no";
+      });o.appendChild(b);
+    });
+    q.appendChild(o);mc.appendChild(q);
+  });
+
+  /* ---------- 4. psaní ---------- */
+  var ty=document.getElementById("typed");
+  tyItems.forEach(function(it){
+    var q=el("div","q");q.appendChild(sentence(it.s));
+    var row=el("div","typed");
+    var inp=el("input","t");inp.type="text";inp.setAttribute("autocomplete","off");inp.setAttribute("autocapitalize","none");inp.setAttribute("spellcheck","false");inp.setAttribute("aria-label","Doplň sloveso "+it.v.inf);
+    var btn=el("button","btn primary","Zkontrolovat");btn.type="button";
+    var fb=el("div","fb2");fb.setAttribute("aria-live","polite");
+    var tries=0;
+    function check(){
+      if(q.dataset.done)return;
+      var val=inp.value;if(!val.trim())return;
+      var okForms=acc(it.v,it.p);
+      var ok=okForms.map(norm).indexOf(norm(val))>=0;
+      if(ok){
+        q.dataset.done="1";inp.className="t ok";got++;upd();
+        var exact=okForms.indexOf(val.trim().toLowerCase())>=0;
+        fb.textContent=exact?"✅ Správně!":"✅ Správně! Pozor na čárky: "+okForms[0];
+        say(it.s[0].replace("___",okForms[0]));
+      }else{
+        tries++;inp.className="t no";
+        if(tries>=2){q.dataset.done="1";fb.textContent="❌ Správně je: "+okForms.join(" / ");}
+        else fb.textContent="❌ Zkus to znovu. Nápověda: začíná na „"+okForms[0].charAt(0)+"“.";
+      }
+    }
+    btn.addEventListener("click",check);
+    inp.addEventListener("keydown",function(e){if(e.key==="Enter")check();});
+    row.appendChild(inp);row.appendChild(btn);q.appendChild(row);q.appendChild(fb);ty.appendChild(q);
+  });
+
+  /* ---------- 5. hra ---------- */
+  var OBJ={jist:["polévku","řízek","pizzu","salát","hranolky","palačinku"],pit:["čaj","vodu","limonádu","kávu","colu"],chtit:["pizzu","kávu","zmrzlinu","hranolky","vodu"],cist:["knihu","časopis","jídelní lístek","zprávy"],mit:["pizzu","zmrzlinu","kávu","hranolky","guláš"]};
+  var GP=[["Já",0],["Ty",1],["On",2],["Ona",2],["My",3],["Vy",4],["Oni",5]];
+  var ask=document.getElementById("ask"),ans=document.getElementById("ans"),cur=null;
+  function build(v,g,obj){
+    var f=main(v,g[1]);
+    if(v.id==="mit"){
+      var r;switch(g[0]){case "Já":r="rád / ráda";break;case "Ty":r="rád / ráda";break;case "On":r="rád";break;case "Ona":r="ráda";break;default:r="rádi";}
+      return g[0]+" "+f+" "+r+" "+obj+".";
+    }
+    return g[0]+" "+f+" "+obj+".";
+  }
+  document.getElementById("roll").addEventListener("click",function(){
+    var v=rnd(V),g=rnd(GP),obj=rnd(OBJ[v.id]);
+    cur={v:v,g:g,obj:obj,text:build(v,g,obj)};
+    ask.textContent=g[0].toLowerCase()+" + "+v.inf+" + "+obj;ans.textContent="";
+  });
+  document.getElementById("show").addEventListener("click",function(){if(cur){ans.textContent=cur.text;}});
+  document.getElementById("hear").addEventListener("click",function(){if(cur){ans.textContent=cur.text;say(cur.text.replace(" / ráda","").replace(" rád / ","rád "));}});
+})();
+</script>
+</body>
+</html>
